@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Luxury yacht at sunset">
+<defs>
+ <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#8499a0"/><stop offset=".46" stop-color="#d7b88f"/><stop offset=".7" stop-color="#c88f5e"/><stop offset="1" stop-color="#22343a"/></linearGradient>
+ <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#34515a"/><stop offset="1" stop-color="#061216"/></linearGradient>
+ <linearGradient id="deck" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fbfaf2"/><stop offset="1" stop-color="#a9b2b2"/></linearGradient>
+ <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#142328"/><stop offset="1" stop-color="#02090b"/></linearGradient>
+ <radialGradient id="sun"><stop stop-color="#fff4c7"/><stop offset=".28" stop-color="#f5c574"/><stop offset="1" stop-color="#e69b43" stop-opacity="0"/></radialGradient>
+ <filter id="blur"><feGaussianBlur stdDeviation="22"/></filter>
+</defs>
+<rect width="1600" height="1000" fill="url(#sky)"/>
+<circle cx="1030" cy="365" r="170" fill="url(#sun)" filter="url(#blur)"/><circle cx="1030" cy="365" r="24" fill="#fff5ce"/>
+<path d="M0 470 C260 430 440 505 670 460 C840 425 1050 490 1260 440 C1410 405 1510 420 1600 430 L1600 1000 L0 1000Z" fill="url(#sea)"/>
+<g opacity=".28" stroke="#d7b37e" stroke-width="3"><path d="M0 565 Q300 520 590 565 T1190 555 T1600 548"/><path d="M0 620 Q280 585 540 620 T1100 610 T1600 610"/><path d="M0 700 Q260 665 520 700 T1080 692 T1600 688"/><path d="M0 820 Q280 790 590 825 T1180 812 T1600 814"/></g>
+<path d="M115 470 C210 425 300 405 405 420 C360 450 320 478 290 520 C230 505 170 492 115 470Z" fill="#172326" opacity=".78"/>
+<path d="M1220 445 C1320 400 1450 392 1600 412 L1600 492 C1455 468 1345 466 1220 445Z" fill="#172326" opacity=".7"/>
+<g transform="translate(790 440)">
+ <ellipse cx="180" cy="350" rx="430" ry="58" fill="#000" opacity=".3"/>
+ <path d="M-155 275 C35 235 425 230 670 260 C585 340 390 385 65 377 C-35 374 -105 340 -155 275Z" fill="url(#deck)"/>
+ <path d="M-48 213 C95 180 400 175 575 206 L520 262 L0 278Z" fill="#f2f1e8"/>
+ <path d="M70 145 C190 115 365 115 475 143 L430 205 L110 210Z" fill="#e9e8de"/>
+ <path d="M160 88 C255 70 350 73 410 90 L380 143 L185 145Z" fill="#e5e5dc"/>
+ <path d="M95 158 L450 158 L414 198 L120 199Z" fill="url(#glass)"/>
+ <path d="M185 100 L392 100 L366 134 L205 136Z" fill="url(#glass)"/>
+ <path d="M276 22 L286 90" stroke="#e6e4db" stroke-width="8"/><path d="M286 38 L345 57" stroke="#e6e4db" stroke-width="6"/>
+ <path d="M-95 290 C110 312 435 312 620 276" fill="none" stroke="#6f7776" stroke-width="4" opacity=".7"/>
+ <g fill="#d7ae68"><rect x="32" y="250" width="18" height="5"/><rect x="90" y="258" width="18" height="5"/><rect x="150" y="265" width="18" height="5"/><rect x="210" y="269" width="18" height="5"/><rect x="270" y="271" width="18" height="5"/></g>
+</g>
+<path d="M1010 385 C1008 470 1005 565 1007 785" stroke="#f0bd70" stroke-width="28" opacity=".08" filter="url(#blur)"/>
+</svg>
