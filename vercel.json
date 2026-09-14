@@ -1,0 +1,5 @@
+{
+  "redirects": [
+    { "source": "/hero.jpg", "destination": "/hero.svg", "permanent": false }
+  ]
+}
