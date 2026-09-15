@@ -3,5 +3,8 @@
   <url><loc>https://velaris-private-charter.vercel.app/</loc><priority>1.0</priority></url>
   <url><loc>https://velaris-private-charter.vercel.app/destinations/french-riviera.html</loc><priority>0.8</priority></url>
   <url><loc>https://velaris-private-charter.vercel.app/destinations/balearics.html</loc><priority>0.8</priority></url>
-  <url><loc>https://velaris-private-charter.vercel.app/destinations/greek-islands.html</loc><priority>0.8</priority></url>
+  <url><loc>https://velaris-private-charter.vercel.app/destinations/greek-islands.html</loc><priority>0.9</priority></url>
+  <url><loc>https://velaris-private-charter.vercel.app/destinations/croatia.html</loc><priority>0.9</priority></url>
+  <url><loc>https://velaris-private-charter.vercel.app/destinations/amalfi-coast.html</loc><priority>0.8</priority></url>
+  <url><loc>https://velaris-private-charter.vercel.app/destinations/caribbean.html</loc><priority>0.8</priority></url>
 </urlset>
