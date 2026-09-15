@@ -213,7 +213,9 @@
             ><span>03 · We do not hold charter funds</span>
           </div>
         </div>
-        <form id="briefForm" data-reveal>
+        <form id="briefForm" action="https://formspree.io/f/mnpqekbo" method="POST" data-reveal>
+          <input type="hidden" name="_subject" value="New Private Charter Brief" />
+          <div hidden aria-hidden="true"><label>Leave blank<input name="_gotcha" tabindex="-1" autocomplete="off" /></label></div>
           <div class="formHead">
             <span>YOUR REQUIREMENTS</span><span>01 — 06</span>
           </div>
@@ -258,7 +260,7 @@
             ><label>Email<input required type="email" name="email" /></label>
           </div>
           <label class="check"
-            ><input required type="checkbox" /><span
+            ><input required type="checkbox" name="service_acknowledgement" value="accepted" /><span
               >I understand this is a sourcing and introduction service. Charter
               contracts and payments are completed directly with the selected
               charter professional.</span
@@ -266,16 +268,20 @@
           ><button class="primary dark" type="submit">
             Submit private brief <span>↗</span>
           </button>
+          <p id="formStatus" role="status" aria-live="polite" tabindex="-1"></p>
+          <p class="micro">You can also email <a href="mailto:privatecharteroffice@gmail.com">privatecharteroffice@gmail.com</a>.</p>
           <p class="micro">
             Your information is treated as confidential and used only in
-            connection with your charter enquiry.
+            connection with your charter enquiry. Formspree processes this form
+            and sends your brief to our inbox. Please avoid including sensitive
+            personal information at this stage.
           </p>
         </form>
-        <div class="success" id="success">
-          <p class="kicker">BRIEF CAPTURED</p>
-          <h3>Consider it in hand.</h3>
+        <div class="success" id="success" role="status" tabindex="-1">
+          <p class="kicker">BRIEF SUBMITTED</p>
+          <h3>Thank you.</h3>
           <p>
-            Your requirements have been captured in this validation preview.
+            Your brief has been submitted successfully. We will respond using the email address you provided.
           </p>
         </div>
       </section>

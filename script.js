@@ -30,10 +30,41 @@ addEventListener("keydown", (e) => {
 addEventListener("resize", () => {
   if (innerWidth > 900) closeMenu();
 });
-document.getElementById("briefForm").addEventListener("submit", (e) => {
+document.getElementById("briefForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  e.currentTarget.style.display = "none";
-  const s = document.getElementById("success");
-  s.style.display = "block";
-  document.getElementById("brief").scrollIntoView({ behavior: "smooth" });
+  const form = e.currentTarget;
+  const button = form.querySelector('button[type="submit"]');
+  const status = document.getElementById("formStatus");
+  if (button.disabled || !form.reportValidity()) return;
+  const body = new FormData(form);
+  const originalLabel = button.innerHTML;
+  button.disabled = true;
+  button.textContent = "Sending…";
+  form.setAttribute("aria-busy", "true");
+  status.textContent = "Sending your brief…";
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+  try {
+    const response = await fetch(form.action, {
+      method: "POST",
+      body,
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+    const result = await response.json();
+    if (!response.ok || result.ok !== true) throw new Error("Submission not confirmed");
+    form.reset();
+    form.style.display = "none";
+    const success = document.getElementById("success");
+    success.style.display = "block";
+    success.focus();
+  } catch {
+    status.textContent = "We couldn’t confirm your submission. Your details are still here. Please retry or email privatecharteroffice@gmail.com. If you retry after a connection problem, your brief may arrive twice.";
+    status.focus();
+  } finally {
+    clearTimeout(timeout);
+    button.disabled = false;
+    button.innerHTML = originalLabel;
+    form.removeAttribute("aria-busy");
+  }
 });
