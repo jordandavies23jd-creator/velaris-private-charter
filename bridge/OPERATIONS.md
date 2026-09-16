@@ -1,5 +1,13 @@
 # Private Charter Office handover bridge
 
+## Offline completion release — 16 September 2026
+
+The customer form initialises before presentation effects. Animation API failures reveal the page without disabling intake. Secure-browser reference generation has a getRandomValues fallback. Failed or ambiguous submissions retain the entered details and reference; identical retries reuse the same payload. If details change after an attempted submission, the form asks the customer to restore the original details or contact the office with the reference, avoiding an accidental second or conflicting enquiry. Confirmed submissions retain their details in page memory rather than clearing them before the success panel is displayed. Customer field limits match backend validation, and the date prompt explicitly requests a year.
+
+The handover desk links to the partnership tracker and /bridge/partner-checklist.html. The checklist documents recipient verification, charter suitability, written commission and attribution terms, response ownership, customer consent and referral partner approval. It is operational guidance, not a signed agreement or an automatic approval. Actual dated written evidence must still be recorded by the operator before registering a verified charter business.
+
+Nine local Node tests passed: five existing intake/template checks and four mocked customer-form regression checks covering missing animation support, interrupted identical retries, changed-payload blocking, unavailable success panel and reference generation without randomUUID. No production enquiry, test email or live handover was generated for this release. Instant unattended delivery still requires securely configured server email credentials; partner agreements require counterparty confirmation. The first complete live handover remains a supervised verification step.
+
 Production desk: https://velaris-private-charter.vercel.app/bridge/desk
 Backend: dedicated Private Charter Office Supabase project prsmpxewavilnymdaroi. Website: velaris-private-charter only.
 
