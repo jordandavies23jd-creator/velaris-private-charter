@@ -10,6 +10,11 @@ async function db(path: string, method='GET', body?: unknown) {
   return data;
 }
 const rpc=(name:string,args:unknown)=>db('rpc/'+name,'POST',args);
+async function allRows(path:string) {
+  const rows=[];
+  for(let offset=0;offset<10000;offset+=500){const page=await db(path+'&limit=500&offset='+offset);rows.push(...page);if(page.length<500)return rows;}
+  throw new Error('HISTORY_LIMIT');
+}
 async function operator(req:Request) {
   const key=req.headers.get('Authorization')?.replace(/^Bearer /,'') || '';
   if(key.length<40 || key.length>200) return false;
@@ -27,7 +32,7 @@ Deno.serve(async req => {
     let input; try { input=JSON.parse(raw); } catch { return respond({error:"INVALID_SUBMISSION"},400); }
     if (!input || typeof input!=="object" || Array.isArray(input))return respond({error:"INVALID_SUBMISSION"},400);
     const action=input.action;
-    if(action==='health')return respond({ok:true,version:'bridge-2'});
+    if(action==='health')return respond({ok:true,version:'bridge-3'});
     if(action==='ack') {
       if(!/^[a-f0-9]{64}$/.test(input.token || ''))return respond({error:'INVALID_ACK'},400);
       return respond(await rpc('bridge_ack',{p_hash:await hash(input.token)}));
@@ -45,8 +50,18 @@ Deno.serve(async req => {
     }
     if(!await operator(req))return respond({error:'UNAUTHORIZED'},401);
     if(action==='list') {
-      const [enquiries,partners,deliveries,events]=await Promise.all([db('bridge_enquiries?order=created_at.desc&limit=200'),db('bridge_partners?order=company'),db('bridge_deliveries?order=created_at.desc&limit=600'),db('bridge_events?order=id.desc&limit=1000')]);
-      return respond({enquiries,partners,deliveries,events});
+      const offset=Number(input.offset ?? 0);
+      if(!Number.isSafeInteger(offset)||offset<0||offset>1000000)throw new Error('INVALID_FIELD');
+      const [page,partners]=await Promise.all([db('bridge_enquiries?order=created_at.desc,reference.asc&limit=26&offset='+offset),allRows('bridge_partners?order=company,id')]);
+      const enquiries=page.slice(0,25), refs=enquiries.map((e:any)=>e.reference);
+      const filter='reference=in.('+refs.join(',')+')';
+      const [deliveries,events]=refs.length?await Promise.all([allRows('bridge_deliveries?'+filter+'&order=created_at.desc,id'),allRows('bridge_events?'+filter+'&order=id.desc')]):[[],[]];
+      return respond({enquiries,partners,deliveries,events,offset,has_more:page.length>25});
+    }
+    if(action==='import') {
+      const {reference,payload}=validateIntake(input);
+      if(input.is_test===true && payload.email!=='privatecharteroffice@gmail.com')throw new Error('TEST_EMAIL_REQUIRED');
+      return respond({ok:true,...await rpc('bridge_import',{p_ref:reference,p_payload:payload,p_fingerprint:await hash(JSON.stringify(payload)),p_test:input.is_test===true,p_receipt:receiptBody(reference,payload),p_evidence:String(input.evidence || '')})});
     }
     if(action==='test_intake') {
       const {reference,payload}=validateIntake(input);

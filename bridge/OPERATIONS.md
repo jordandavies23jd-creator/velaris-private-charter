@@ -34,3 +34,7 @@ Use Office actions for notes, follow-up deadlines, corrected briefs/permission, 
 - Five Node validation/template tests passed. Anonymous desk API returned HTTP 401. Security advisor returned informational default-deny RLS notices, no warning/error findings. New tables revoke anon/authenticated access; server-side service role only. No live partner has been activated.
 
 No guarantee is made about spam filtering, recipient mailbox delivery, provider outages, partner response time, or future production behaviour. Gmail acceptance and partner acknowledgement are tracked as distinct facts.
+
+## Office import and paging
+
+Use Import an email enquiry for reviewed Formspree or direct messages. Record the original message ID/date and the customer’s explicit consent evidence. No consent is inferred from an enquiry. Reuse the same reference after an interrupted import; changed content requires a reviewed correction. Successful imports queue a receipt and office alert atomically with their source evidence. They never select a charter partner. Rehearsals are restricted to the office inbox. Newer/Older controls show 25 enquiries per page and load delivery/activity history for that page rather than silently dropping older records.
