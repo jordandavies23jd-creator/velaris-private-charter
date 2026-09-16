@@ -32,7 +32,7 @@ Deno.serve(async req => {
     let input; try { input=JSON.parse(raw); } catch { return respond({error:"INVALID_SUBMISSION"},400); }
     if (!input || typeof input!=="object" || Array.isArray(input))return respond({error:"INVALID_SUBMISSION"},400);
     const action=input.action;
-    if(action==='health')return respond({ok:true,version:'bridge-4'});
+    if(action==='health')return respond({ok:true,version:'bridge-5'});
     if(action==='ack') {
       if(!/^[a-f0-9]{64}$/.test(input.token || ''))return respond({error:'INVALID_ACK'},400);
       return respond(await rpc('bridge_ack',{p_hash:await hash(input.token)}));
@@ -49,6 +49,11 @@ Deno.serve(async req => {
       return respond({ok:true,...await rpc('bridge_receive',{p_ref:reference,p_payload:payload,p_fingerprint:await hash(JSON.stringify(payload)),p_bucket:bucket,p_test:false,p_receipt:receiptBody(reference,payload)})});
     }
     if(!await operator(req))return respond({error:'UNAUTHORIZED'},401);
+    if(action==='prospects')return respond({prospects:await allRows('bridge_prospects?order=followup_due_at.asc.nullslast,email')});
+    if(action==='prospect_update') {
+      if(!EMAIL.test(String(input.email || '')) || !Number.isSafeInteger(input.revision))throw new Error('INVALID_FIELD');
+      return respond(await rpc('bridge_prospect_update',{p_email:input.email,p_revision:input.revision,p_status:String(input.status || ''),p_evidence:String(input.evidence || ''),p_action:String(input.next_action || ''),p_due:input.due || null}));
+    }
     if(action==='list') {
       const offset=Number(input.offset ?? 0);
       if(!Number.isSafeInteger(offset)||offset<0||offset>1000000)throw new Error('INVALID_FIELD');
