@@ -27,10 +27,14 @@ Deno.serve(async req => {
     let input; try { input=JSON.parse(raw); } catch { return respond({error:"INVALID_SUBMISSION"},400); }
     if (!input || typeof input!=="object" || Array.isArray(input))return respond({error:"INVALID_SUBMISSION"},400);
     const action=input.action;
-    if(action==='health')return respond({ok:true,version:'bridge-1'});
+    if(action==='health')return respond({ok:true,version:'bridge-2'});
     if(action==='ack') {
       if(!/^[a-f0-9]{64}$/.test(input.token || ''))return respond({error:'INVALID_ACK'},400);
       return respond(await rpc('bridge_ack',{p_hash:await hash(input.token)}));
+    }
+    if(action==='partner_response') {
+      if(!/^[a-f0-9]{64}$/.test(input.token || ''))throw new Error('INVALID_ACK');
+      return respond(await rpc('bridge_partner_response',{p_hash:await hash(input.token),p_decision:input.decision,p_owner:String(input.owner || ''),p_steps:String(input.next_steps || '')}));
     }
     if(action==='intake') {
       if(input._gotcha)return respond({error:'INVALID_SUBMISSION'},400);
@@ -61,8 +65,14 @@ Deno.serve(async req => {
       if(!e || !p)throw new Error('NOT_FOUND');
       const token=Array.from(crypto.getRandomValues(new Uint8Array(32)),x=>x.toString(16).padStart(2,'0')).join('');
       const link='https://velaris-private-charter.vercel.app/bridge/ack.html#'+token;
-      const d=await rpc('bridge_queue',{p_ref:e.reference,p_partner:p.id,p_subject:(e.is_test?'TEST ONLY — ':'')+'Charter handover — '+e.reference,p_body:handoverBody(e.reference,e.payload,p.company,link),p_ack_hash:await hash(token)});
+      const d=await rpc('bridge_queue_checked',{p_revision:input.revision,p_ref:e.reference,p_partner:p.id,p_subject:(e.is_test?'TEST ONLY — ':'')+'Charter handover — '+e.reference,p_body:handoverBody(e.reference,e.payload,p.company,link),p_ack_hash:await hash(token)});
       return respond({delivery:d});
+    }
+    if(action==='office') {
+      if(!/^PCO-[A-Z0-9-]{8,75}$/.test(input.reference || ''))throw new Error('INVALID_REFERENCE');
+      let payload=null;
+      if(input.operation==='correct') { const [e]=await db('bridge_enquiries?reference=eq.'+input.reference); if(!e)throw new Error('NOT_FOUND'); payload=validateIntake({...e.payload,...input.payload,enquiry_reference:e.reference,service_acknowledgement:'accepted'}).payload; if(e.is_test && payload.email!=='privatecharteroffice@gmail.com')throw new Error('TEST_EMAIL_REQUIRED'); }
+      return respond(await rpc('bridge_office',{p_ref:input.reference,p_revision:input.revision,p_action:input.operation,p_evidence:String(input.evidence || ''),p_payload:payload,p_due:input.due || null}));
     }
     if(action==='recover') {
       if(!/^[a-f0-9-]{36}$/.test(input.delivery_id || ''))throw new Error('INVALID_REFERENCE');
@@ -71,7 +81,7 @@ Deno.serve(async req => {
     return respond({error:'BAD_ACTION'},400);
   } catch(e) {
     const message=e instanceof Error?e.message:'INTERNAL_ERROR';
-    const known=['REFERENCE_CONFLICT','RATE_LIMIT','INVALID_FIELD','MISSING_REQUIREMENTS','INVALID_EMAIL','SERVICE_ACKNOWLEDGEMENT_REQUIRED','INVALID_REFERENCE','PARTNER_NOT_APPROVED','TEST_LIVE_MISMATCH','SHARING_PERMISSION_REQUIRED','ALREADY_ROUTED','INVALID_ACK','NOT_SENT','NOT_FOUND','RETRY_REQUIRES_CONFIRMED_FAILURE','EVIDENCE_REQUIRED','PARTNER_DETAILS_REQUIRED','TEST_EMAIL_REQUIRED','BAD_ACTION'];
+    const known=['REFERENCE_CONFLICT','RATE_LIMIT','INVALID_FIELD','MISSING_REQUIREMENTS','INVALID_EMAIL','SERVICE_ACKNOWLEDGEMENT_REQUIRED','INVALID_REFERENCE','PARTNER_NOT_APPROVED','TEST_LIVE_MISMATCH','SHARING_PERMISSION_REQUIRED','ALREADY_ROUTED','INVALID_ACK','NOT_SENT','NOT_FOUND','RETRY_REQUIRES_CONFIRMED_FAILURE','EVIDENCE_REQUIRED','PARTNER_DETAILS_REQUIRED','TEST_EMAIL_REQUIRED','BAD_ACTION','ENQUIRY_INACTIVE','RESPONSE_REQUIRED','RESPONSE_ALREADY_RECORDED','STALE_REVISION','DEADLINE_REQUIRED','RESOLVE_SEND_FIRST','HANDOVER_NOT_COMPLETE'];
     const error=known.find(x=>message.includes(x)) || 'SERVICE_UNAVAILABLE';
     return respond({error},error==='REFERENCE_CONFLICT'?409:error==='RATE_LIMIT'?429:error==='SERVICE_UNAVAILABLE'?503:400);
   }

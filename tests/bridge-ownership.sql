@@ -1,0 +1,31 @@
+begin;
+do $$
+declare ref text:='PCO-TEST-OWNERSHIP-ROLLBACK'; pid uuid; did uuid; j jsonb;
+begin
+ insert into bridge_enquiries(reference,payload,fingerprint,is_test) values(ref,'{"email":"privatecharteroffice@gmail.com","sharing_permission":"accepted"}','test',true);
+ insert into bridge_partners(company,email,territories,terms_evidence,verified,active,is_test) values('Synthetic rollback partner','privatecharteroffice@gmail.com','Test','Office-only rollback verification',true,true,true) returning id into pid;
+ j:=bridge_queue_checked(0,ref,pid,'TEST ONLY','Synthetic body',repeat('a',64)); did:=(j->>'id')::uuid;
+ update bridge_deliveries set status='sent',gmail_message_id='SYNTHETIC-ROLLBACK',sent_at=now() where id=did;
+ perform bridge_partner_response(repeat('a',64),'accepted','Synthetic owner','Test next step within one working day');
+ perform bridge_partner_response(repeat('a',64),'accepted','Synthetic owner','Test next step within one working day');
+ if (select count(*) from bridge_deliveries where reference=ref and kind='customer_update')<>1 then raise exception 'duplicate update'; end if;
+ perform bridge_ack(repeat('a',64));
+ if (select status from bridge_enquiries where reference=ref)<>'partner_owned' then raise exception 'ack regressed ownership'; end if;
+ begin perform bridge_partner_response(repeat('a',64),'declined','Synthetic owner','Cannot proceed with this test'); raise exception 'conflict allowed'; exception when others then if sqlerrm not like '%RESPONSE_ALREADY_RECORDED%' then raise; end if; end;
+ begin perform bridge_office(ref,0,'close','Synthetic office confirms contact'); raise exception 'premature close allowed'; exception when others then if sqlerrm not like '%HANDOVER_NOT_COMPLETE%' then raise; end if; end;
+ perform bridge_office(ref,0,'deadline','Synthetic follow-up deadline evidence',null,now()-interval '1 hour');
+ perform bridge_followups(); perform bridge_followups();
+ if (select count(*) from bridge_deliveries where reference=ref and kind='partner_followup')<>1 then raise exception 'duplicate reminder'; end if;
+ perform bridge_office(ref,0,'reassign','Synthetic old partner informed and handover released');
+ if not exists(select 1 from bridge_deliveries where id=did and superseded_at is not null and status='sent') then raise exception 'sent history lost'; end if;
+ begin perform bridge_ack(repeat('a',64)); raise exception 'stale link allowed'; exception when others then if sqlerrm not like '%ENQUIRY_INACTIVE%' then raise; end if; end;
+ begin perform bridge_queue_checked(0,ref,pid,'TEST','Body',repeat('b',64)); raise exception 'stale queue allowed'; exception when others then if sqlerrm not like '%STALE_REVISION%' then raise; end if; end;
+ j:=bridge_queue_checked(1,ref,pid,'TEST','Body',repeat('b',64)); did:=(j->>'id')::uuid;
+ update bridge_deliveries set status='uncertain' where id=did;
+ begin perform bridge_office(ref,1,'withdraw','Synthetic customer withdrawal request'); raise exception 'ambiguous withdrawal allowed'; exception when others then if sqlerrm not like '%RESOLVE_SEND_FIRST%' then raise; end if; end;
+ perform bridge_recover(did,'confirm_not_sent','Synthetic checked Gmail Sent and confirmed no send');
+ perform bridge_office(ref,1,'withdraw','Synthetic customer withdrawal request');
+ begin perform bridge_recover(did,'retry'); raise exception 'withdrawn retry allowed'; exception when others then if sqlerrm not like '%ENQUIRY_INACTIVE%' then raise; end if; end;
+end $$;
+select 'ownership, duplicate, late receipt, decline conflict, close gate, follow-up dedupe, reassignment, stale link, stale revision, ambiguous send, withdrawal retry: passed' as result;
+rollback;
