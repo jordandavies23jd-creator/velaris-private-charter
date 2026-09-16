@@ -74,10 +74,10 @@ document.getElementById("briefForm").addEventListener("submit", async (e) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20000);
   try {
-    const response = await fetch(form.action, {
+    const response = await fetch("https://prsmpxewavilnymdaroi.supabase.co/functions/v1/charter-bridge", {
       method: "POST",
-      body,
-      headers: { Accept: "application/json" },
+      body: JSON.stringify({ ...Object.fromEntries(body), action: "intake" }),
+      headers: { "Content-Type": "application/json" },
       signal: controller.signal,
     });
     const result = await response.json();
@@ -90,7 +90,7 @@ document.getElementById("briefForm").addEventListener("submit", async (e) => {
     success.style.display = "block";
     success.focus();
   } catch {
-    status.textContent = "We couldn’t confirm your submission. Your details are still here. Please retry or email privatecharteroffice@gmail.com. If you retry after a connection problem, your brief may arrive twice.";
+    status.textContent = "We couldn’t confirm your submission. Your details are still here. Please retry or email privatecharteroffice@gmail.com. Retrying with the same details keeps the same reference.";
     status.focus();
   } finally {
     clearTimeout(timeout);
