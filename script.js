@@ -30,6 +30,32 @@ addEventListener("keydown", (e) => {
 addEventListener("resize", () => {
   if (innerWidth > 900) closeMenu();
 });
+// Keep the same reference on retries; never store customer details in the browser.
+const briefForm = document.getElementById("briefForm");
+const newEnquiryReference = () => "PCO-" + crypto.randomUUID().toUpperCase();
+briefForm.elements.enquiry_reference.value = newEnquiryReference();
+const buildHandoverBrief = (body) => {
+  const value = (key) => String(body.get(key) || "Not provided").trim();
+  const permitted = body.get("sharing_permission") === "accepted";
+  return [
+    "PRIVATE CHARTER OFFICE — ENQUIRY HANDOVER",
+    "Reference: " + value("enquiry_reference"),
+    "Destination: " + value("area"),
+    "Dates: " + value("dates"),
+    "Date flexibility: " + value("date_flexibility"),
+    "Guests: " + value("guests"),
+    "Budget range (GBP): " + value("budget"),
+    "Budget basis: " + value("budget_scope"),
+    "Priorities: " + value("requirements"),
+    "Customer: " + value("name"),
+    "Email: " + value("email"),
+    "Phone / WhatsApp: " + value("phone"),
+    "Sharing permission: " + (permitted ? "Accepted" : "NOT GIVEN — contact customer before sharing"),
+    "Consent wording version: " + value("consent_version"),
+    "Office action: review fit and confirm an approved partner before handover.",
+    "Partner action: acknowledge this reference, assess availability and confirm next steps. No booking or price is confirmed by this enquiry."
+  ].join("\n");
+};
 document.getElementById("briefForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.currentTarget;
@@ -37,6 +63,9 @@ document.getElementById("briefForm").addEventListener("submit", async (e) => {
   const status = document.getElementById("formStatus");
   if (button.disabled || !form.reportValidity()) return;
   const body = new FormData(form);
+  const reference = String(body.get("enquiry_reference"));
+  body.set("_subject", "Private Charter Mandate — " + reference);
+  body.set("handover_brief", buildHandoverBrief(body));
   const originalLabel = button.innerHTML;
   button.disabled = true;
   button.textContent = "Sending…";
@@ -54,6 +83,8 @@ document.getElementById("briefForm").addEventListener("submit", async (e) => {
     const result = await response.json();
     if (!response.ok || result.ok !== true) throw new Error("Submission not confirmed");
     form.reset();
+    form.elements.enquiry_reference.value = newEnquiryReference();
+    document.getElementById("successReference").textContent = "Your reference is " + reference + ".";
     form.style.display = "none";
     const success = document.getElementById("success");
     success.style.display = "block";
