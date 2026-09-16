@@ -134,6 +134,10 @@ begin
   if d.status<>'failed' then raise exception 'RETRY_REQUIRES_CONFIRMED_FAILURE'; end if;
   update bridge_deliveries set status='queued',claim_id=null,claimed_at=null,last_error=null where id=p_id;
   if d.kind='handover' then update bridge_enquiries set status='handover_queued',updated_at=now() where reference=d.reference; end if;
+ elsif p_action='confirm_not_sent' then
+  if d.status<>'uncertain' or d.acknowledged_at is not null or coalesce(length(p_message),0)<20 then raise exception 'EVIDENCE_REQUIRED'; end if;
+  update bridge_deliveries set status='failed',last_error='Office verified no send: '||left(p_message,400) where id=p_id;
+  if d.kind='handover' then update bridge_enquiries set status='handover_failed',updated_at=now() where reference=d.reference; end if;
  elsif p_action='confirm_sent' then
   if d.status<>'uncertain' or coalesce(length(p_message),0)=0 then raise exception 'EVIDENCE_REQUIRED'; end if;
   update bridge_deliveries set status='sent',gmail_message_id=p_message,sent_at=now(),last_error=null where id=p_id;
