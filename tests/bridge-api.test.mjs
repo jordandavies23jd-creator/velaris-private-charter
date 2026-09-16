@@ -35,3 +35,9 @@ test('email import retains absence of consent and uses the atomic audited import
  const s=server();const r=await s.request({action:'import',enquiry_reference:'PCO-FIXTURE-IMPORT-001',area:'Greece',dates:'July 2027',guests:'8',budget:'GBP 100000',budget_scope:'Charter fee',name:'Fixture',email:'privatecharteroffice@gmail.com',service_acknowledgement:'accepted',evidence:'Original fixture message consent reviewed.',is_test:true});
  assert.equal(r.status,200);const rpc=s.calls.find(c=>c.path==='rpc/bridge_import');assert.equal(rpc.body.p_payload.sharing_permission,'not_given');assert.equal(rpc.body.p_test,true);assert.equal(rpc.body.p_evidence,'Original fixture message consent reviewed.');
 });
+
+test('customer qualification requires office access and preserves explicit confirmation',async()=>{
+ const s=server();assert.equal((await s.request({action:'qualify',reference:'PCO-FIXTURE-QUALIFY-001'},false)).status,401);
+ const r=await s.request({action:'qualify',reference:'PCO-FIXTURE-QUALIFY-001',revision:0,stage:'confirmed',confirmed:'true',source:'Fixture referrer',evidence:'Customer confirmation fixture evidence.',due:'2027-01-01T12:00:00Z'});
+ assert.equal(r.status,200);const call=s.calls.find(c=>c.path==='rpc/bridge_qualify');assert.equal(call.body.p_confirmed,false);assert.equal(call.body.p_source,'Fixture referrer');assert.equal(call.body.p_revision,0);
+});
